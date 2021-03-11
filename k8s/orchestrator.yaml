@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  labels:
+    app: manageiq
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      name: orchestrator
+  template:
+    metadata:
+      name: orchestrator
+      labels:
+        name: orchestrator
+    spec:
+      containers:
+      - name: orchestrator
+        image: <your repo>/my-manageiq-orchestrator:latest-jansa
+        livenessProbe:
+          exec:
+            command:
+            - pidof
+            - MIQ Server
+          initialDelaySeconds: 480    
+          timeoutSeconds: 3
+        env:
+        - name: HTTP_PROXY
+          value: '<your proxy passwd if needed>'
+        - name: HTTPS_PROXY
+          value: '<your proxy passwd if needed>'
+        - name: ALLOW_INSECURE_SESSION
+          value: 'true'
+        - name: APP_NAME
+          value: manageiq
+        - name: GUID
+          value: 'f2c884da-abed-4d06-80fe-6471e8e9e295'
+        - name: DATABASE_REGION
+          value: '0'
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: hostname
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: dbname
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: password
+        - name: DATABASE_PORT
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: port
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: username
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: encryption-key
+        ## orchestrator will launch 3 workers
+        # manageiq/manageiq-ui-worker
+        # manageiq/manageiq-webserver-worker
+        # manageiq/manageiq-base-worker
+        - name: CONTAINER_IMAGE_NAMESPACE
+          value: '<your repo name>'
+        - name: CONTAINER_IMAGE_TAG
+          value: 'latest-jansa'
+          #value: 'latest-kasparov'
+        - name: IMAGE_PULL_SECRET
+          value: ''
+        - name: MESSAGING_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: hostname
+        - name: MESSAGING_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: password
+        - name: MESSAGING_PORT
+          value: '9092'
+        - name: MESSAGING_TYPE
+          value: 'kafka'
+        - name: MESSAGING_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: username
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        # resources:
+        #   requests:
+        #     memory: 6144Mi
+        #     cpu: 1000m
+        #   limits:
+        #     memory: 16384Mi
+      # imagePullSecrets:
+      # - name: ''
+      serviceAccountName: 'manageiq-orchestrator'
+      terminationGracePeriodSeconds: 90
+

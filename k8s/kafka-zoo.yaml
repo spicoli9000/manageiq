@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper
+  labels:
+    app: manageiq
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: zookeeper
+  template:
+    metadata:
+      name: zookeeper
+      labels:
+        name: zookeeper
+    spec:
+      securityContext:
+        runAsUser: 1001
+        #runAsGroup: 26
+        fsGroup: 1001     
+      containers:
+      - image: <your repo>/bitnami-zookeeper:latest
+        name: zookeeper
+        env:
+        - name: ALLOW_ANONYMOUS_LOGIN
+          value: 'yes'
+        ports:
+        - containerPort: 2181
+        volumeMounts:
+        - mountPath: "/bitnami/zookeeper"
+          name: zookeeper-data
+      restartPolicy: Always
+      volumes:
+      - name: zookeeper-data
+        persistentVolumeClaim:
+          claimName: zookeeper-data

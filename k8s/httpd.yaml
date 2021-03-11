@@ -1,0 +1,43 @@
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd
+  labels:
+    app: manageiq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: httpd
+  template:
+    metadata:
+      name: httpd
+      labels:
+        name: httpd
+    spec:
+      volumes:
+      - name: httpd-config
+        configMap:
+          name: httpd-configs
+      containers:
+      - name: httpd
+        image: <your repo>/manageiq-httpd:latest
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
+          timeoutSeconds: 3
+        volumeMounts:
+        - name: httpd-config
+          mountPath: "/etc/httpd/conf.d"
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 500m
+          limits:
+            memory: 8192Mi
+

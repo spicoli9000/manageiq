@@ -1,0 +1,53 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  labels:
+    app: manageiq
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: kafka
+  template:
+    metadata:
+      name: kafka
+      labels:
+        name: kafka
+    spec:
+      securityContext:
+        runAsUser: 1001
+        #runAsGroup: 26
+        fsGroup: 1001    
+      containers:
+      - name: kafka
+        image: <your repo>/bitnami-kafka:latest
+        env:
+        - name: KAFKA_BROKER_USER
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: username
+        - name: KAFKA_BROKER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: password
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: 'zookeeper:2181'
+        - name: ALLOW_PLAINTEXT_LISTENER
+          value: 'yes'
+        ports:
+        - containerPort: 9092
+        volumeMounts:
+        - name: kafka-data
+          mountPath: "/bitnami/kafka"
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: kafka-data
+        persistentVolumeClaim:
+          claimName: kafka-data
+

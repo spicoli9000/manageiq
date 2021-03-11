@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpd
+  labels:
+    app: manageiq
+spec:
+  ports:
+  - name: http
+    port: 8080
+  selector:
+    name: httpd

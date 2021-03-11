@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  labels:
+    app: manageiq
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      name: postgresql
+  template:
+    metadata:
+      name: postgresql
+      labels:
+        name: postgresql
+    spec:
+      # added SC to resolve rw to pgsql/data
+      securityContext:
+        runAsUser: 26
+        runAsGroup: 26
+        fsGroup: 26    
+      volumes:
+      - name: miq-pgdb-volume
+        persistentVolumeClaim:
+          claimName: postgresql
+      - name: miq-pg-configs
+        configMap:
+          name: postgresql-configs
+      containers:
+      - name: postgresql
+        image: <your repo>/manageiq-postgresql:latest
+        ## command: ["sleep","infinity"] # remove 
+        ports:
+        - containerPort: 5432
+        readinessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: 5432
+        volumeMounts:
+        - name: miq-pgdb-volume
+          mountPath: "/var/lib/pgsql/data"
+        - name: miq-pg-configs
+          mountPath: "/opt/app-root/src/postgresql-cfg/"
+        env:
+        - name: POSTGRESQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: username
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: password
+        - name: POSTGRESQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-secrets
+              key: dbname
+        - name: POSTGRESQL_MAX_CONNECTIONS
+          value: '1000'
+        - name: POSTGRESQL_SHARED_BUFFERS
+          value: '1GB'
+        resources:
+          requests:
+            memory: 4Gi
+            cpu: 500m
+          limits:
+            memory: 8Gi
+# parameters:
+# - name: APP_NAME
+#   value: manageiq
+# - name: POSTGRESQL_MAX_CONNECTIONS
+#   value: '1000'
+# - name: POSTGRESQL_SHARED_BUFFERS
+#   value: 1GB
+# - name: POSTGRESQL_CPU_REQ
+#   value: 500m
+# - name: POSTGRESQL_MEM_REQ
+#   value: 4Gi
+# - name: POSTGRESQL_MEM_LIMIT
+#   value: 8Gi
+# - name: POSTGRESQL_IMG_NAME
+#   value: docker.io/manageiq/postgresql
+# - name: POSTGRESQL_IMG_TAG
+#   value: '10'
+# - name: DATABASE_VOLUME_CAPACITY
+#   value: 15Gi

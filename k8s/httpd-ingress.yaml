@@ -1,0 +1,26 @@
+# note
+# - change host name
+# - may need to tls keys if using ssl, our k8s ingress nginx manages this for us
+# - set ssl annotations as needed
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: httpd
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "1M"
+    kubernetes.io/ingress.allow-http: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  
+  labels:
+    app: manageiq
+spec:
+  tls:
+  - hosts: 
+    - 'manageiq.devk8s2.yourcompany.com'
+  rules:
+  - host: 'manageiq.devk8s2.yourcompany.com'
+    http:
+      paths:
+      - backend:
+          serviceName: httpd
+          servicePort: 8080

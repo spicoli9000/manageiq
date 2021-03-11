@@ -1,0 +1,28 @@
+
+# will need to change all image names. we load all images to local repo (no docker.io)
+# general order to apply things
+kc apply  -f rbac-role.yaml
+kc apply  -f rbac.yaml
+kc apply  -f app-secrets.yaml
+kc apply  -f httpd-configmap.yaml
+kc apply  -f kafka-secrets.yaml
+kc apply  -f postgresql-configmap.yaml
+kc apply  -f postgresql-secrets.yaml
+kc apply  -f postgresql-pvc.yaml
+kc apply  -f postgresql-svc.yaml
+kc apply  -f postgresql.yaml
+kc apply  -f memcached-svc.yaml
+kc apply  -f memcached.yaml
+kc apply  -f kafka-zoo-pvc.yaml
+kc apply  -f kafka-pvc.yaml
+kc apply  -f kafka-svc.yaml
+kc apply  -f kafka-zoo-svc.yaml
+kc apply  -f kafka-zoo.yaml
+kc apply  -f kafka.yaml
+kc apply  -f orchestrator.yaml
+kc apply  -f httpd-ws-svc.yaml
+kc apply  -f httpd-console-svc.yaml
+kc apply  -f httpd-ui-svc.yaml
+kc apply  -f httpd-svc.yaml
+kc apply  -f httpd.yaml
+kc apply  -f httpd-ingress.yaml
